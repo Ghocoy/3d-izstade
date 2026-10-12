@@ -23,8 +23,9 @@ for (const name of files) {
   manifest.push({ name, version: version(name), sha256: createHash('sha256').update(sql).digest('hex') });
 }
 parts.push(await fs.readFile('supabase/bootstrap/fresh-project-compat.sql', 'utf8'));
+parts.push(await fs.readFile('supabase/bootstrap/fresh-seed-city-scope.sql', 'utf8'));
 await fs.mkdir(output, { recursive: true });
 await fs.writeFile(path.join(output, 'bootstrap.sql'), parts.join('\n'));
 await fs.writeFile(path.join(output, 'manifest.json'), JSON.stringify(manifest, null, 2));
-console.log(`[fresh-supabase] Prepared ${files.length} ordered migrations + fresh-project compatibility, with existing-project guard`);
+console.log(`[fresh-supabase] Prepared ${files.length} ordered migrations + fresh-project compatibility and seed city scope, with existing-project guard`);
 console.log('[fresh-supabase] SQL prepared only; no database connection or schema change');

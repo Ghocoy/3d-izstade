@@ -7,7 +7,8 @@
     "apiUrl": "https://fnvifghuszodpjtzemiw.supabase.co",
     "dashboardUrl": "https://supabase.com/dashboard/project/fnvifghuszodpjtzemiw",
     "migrationWorkdir": "deployment/free-stack",
-    "status": "created-and-schema-verified"
+    "status": "created-and-schema-verified",
+    "defaultSceneSeedCityScope": "verified-three-release-sponsors"
   },
   "render": {
     "status": "not-created-workspace-services-suspended-for-billing"
@@ -19,7 +20,8 @@
     "domainNameservers": "NS1/Netlify; Cloudflare migration not performed"
   },
   "localHost": {
-    "status": "prepared-docker-engine-and-secret-entry-pending",
+    "status": "local-api-supabase-and-redis-path-verified",
+    "dockerManagementAccess": "agent-sandbox-denied; user started local service",
     "composeProject": "ghocoy-expo-local",
     "composeFile": "docker-compose.local-host.yml",
     "startScript": "scripts/start-local-expo.ps1",

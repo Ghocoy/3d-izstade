@@ -2,7 +2,13 @@ LOCAL API + REDIS, CLOUDFLARE PAGES FRONTEND, SUPABASE FREE
 
 This is the prepared alternative to the billing-suspended Render workspace.
 It reuses backend-server/Dockerfile.full and the new Supabase project
-fnvifghuszodpjtzemiw. The public API has not been started or deployed yet.
+fnvifghuszodpjtzemiw. The API now runs locally at 127.0.0.1:3000, not publicly.
+Local checks on 2026-10-12 passed health, actual new-project scene reads
+(5 sectors / 3 companies / 3 booths), allowed/denied CORS origins, 304 ETag cache
+and anonymous quote-admin rejection. An empty lead request reached payload
+validation after the production Redis-required limiter; no lead was inserted.
+The agent cannot inspect Docker's named pipe from its sandbox; the user started
+the service in their own session. Server key is saved only in ignored local env.
 No Hetzner, Vercel or Render hosting subscription is needed for this topology.
 Supabase/Pages free quotas still apply; electricity, internet and an existing
 domain's renewal are separate costs. The API needs the PC awake and online.
@@ -37,8 +43,8 @@ Then reconcile the final frontend/API URLs and move the public records only
 after the build, public health, CORS, Auth and application checks pass.
 
 PREREQUISITES
-- Start Docker Desktop in Linux-container mode. It is installed on this PC,
-  but its engine was not running at the last check.
+- Keep Docker Desktop running in Linux-container mode. The local API is now
+  reachable; engine/container inspection from the agent is permission-denied.
 - Docker must be able to download images and npm dependencies. The current
   agent sandbox cannot reach npm; a complete Docker build remains unverified.
 - In the repository root create .tmp/local-host. Copy backend.env.example to
@@ -57,8 +63,8 @@ local input if absent, builds the backend and starts only this Compose project's
 API/Redis, then checks local health/scene HTTP responses. Existing Docker projects
 are not stopped. It prints no credential values. It has not been run to completion
 because Docker engine access and secure key entry are still pending.
-The ignored .tmp/local-host/backend.env is already prepared with the new project's
-actual public settings and an EMPTY server-key field. Do not publish that file.
+The ignored .tmp/local-host/backend.env now has the new project's actual public
+settings and the user's locally entered server key. Do not publish that file.
 
 Manual equivalents:
 docker compose --env-file .tmp/local-host/backend.env -f docker-compose.local-host.yml config --quiet

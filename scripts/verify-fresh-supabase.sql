@@ -3,6 +3,13 @@ DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM public.sectors) THEN RAISE EXCEPTION 'Scene sectors missing'; END IF;
   IF NOT EXISTS (SELECT 1 FROM public.companies WHERE is_active) THEN RAISE EXCEPTION 'Sponsor seed missing'; END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.companies c
+    JOIN public.sectors s ON s.id = c.sector_id
+    WHERE c.is_active AND s.city_id = (
+      SELECT id FROM public.cities WHERE is_active LIMIT 1
+    )
+  ) THEN RAISE EXCEPTION 'Default public scene has no sponsors in its city sectors'; END IF;
   IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND NOT rowsecurity) THEN
     RAISE EXCEPTION 'Public table without RLS';
   END IF;
