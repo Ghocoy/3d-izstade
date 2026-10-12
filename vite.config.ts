@@ -48,10 +48,29 @@ function releasePublicAssetPrunePlugin(): Plugin {
   }
 }
 
+function compactCloudflareEnvironmentPlugin(): Plugin {
+  return {
+    name: 'warpala-cloudflare-compact-environment',
+    apply: 'build',
+    enforce: 'pre',
+    transform(source, id) {
+      if (process.env.WARPALA_COMPACT_ASSETS !== '1'
+        || !id.replaceAll('\\', '/').endsWith('/ExpoWorldSceneQualityStrategy.ts')) return null
+      const original = "'/models/modern_evening_street_4k.exr'"
+      if (!source.includes(original)) throw new Error('Compact environment source contract changed')
+      return {
+        code: source.replace(original, "'/textures/expo-runtime/modern-evening-street-1k.hdr'"),
+        map: null,
+      }
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
+  publicDir: process.env.WARPALA_PUBLIC_DIR || 'public',
   define: {
     global: 'window',
     __WARPALA_EXPO_BUILD_STAMP__: JSON.stringify(resolveBuildStamp()),
@@ -67,6 +86,7 @@ export default defineConfig(({ mode }) => {
     },
   },
   plugins: [
+    compactCloudflareEnvironmentPlugin(),
     react(),
     VitePWA({
       registerType: 'autoUpdate',

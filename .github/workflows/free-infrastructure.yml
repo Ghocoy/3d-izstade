@@ -1,0 +1,65 @@
+name: Free Infrastructure Validation
+on:
+  push:
+    branches: [infra/free-stack-20261012]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: free-infrastructure-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # CI build fixtures, not deployment credentials or a live Supabase project.
+      VITE_PUBLIC_API_BASE_URL: https://api.example.invalid
+      VITE_PUBLIC_APP_URL: https://expo.example.invalid
+      VITE_SUPABASE_URL: https://ci-project.supabase.co
+      VITE_SUPABASE_ANON_KEY: ci-public-build-fixture
+      WARPALA_SKIP_ENV_FILE_LOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend-server/package-lock.json
+      - run: npm ci --include=optional --no-audit --no-fund
+      - run: npm ci --include=optional --no-audit --no-fund
+        working-directory: backend-server
+      - run: node --test scripts/tests/free-stack.test.mjs
+      - run: npm run build:cloudflare
+      - run: npm run check:bundle-budget
+      - run: npm run check:all
+      - run: npm run check:backend-tests
+      - run: npm run build
+        working-directory: backend-server
+      - run: npm run lint
+        working-directory: backend-server
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: ci-isolated-database
+          POSTGRES_DB: expo_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      PGPASSWORD: ci-isolated-database
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/prepare-fresh-supabase.mjs
+      - run: psql -h localhost -U postgres -d expo_ci -v ON_ERROR_STOP=1 -f scripts/ci-supabase-platform.sql
+      - run: psql -h localhost -U postgres -d expo_ci -v ON_ERROR_STOP=1 --single-transaction -f .tmp/free-stack-bootstrap/bootstrap.sql
+      - run: psql -h localhost -U postgres -d expo_ci -v ON_ERROR_STOP=1 -f scripts/verify-fresh-supabase.sql

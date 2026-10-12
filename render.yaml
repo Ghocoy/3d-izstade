@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+# Explicit free plans: omitting plan would select paid defaults.
+previews:
+  generation: off
+services:
+  - type: keyvalue
+    name: ghocoy-expo-redis
+    region: frankfurt
+    plan: free
+    maxmemoryPolicy: noeviction
+    persistenceMode: off
+    ipAllowList: []
+  - type: web
+    name: ghocoy-expo-api
+    runtime: docker
+    repo: https://github.com/Ghocoy/3d-izstade
+    branch: infra/free-stack-20261012
+    region: frankfurt
+    plan: free
+    numInstances: 1
+    dockerfilePath: ./backend-server/Dockerfile.full
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_ENV
+        value: production
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=384
+      - key: PIXEL_STREAMING_ROUTES_ENABLED
+        value: "false"
+      - key: EXPO_COMMUNITY_STORAGE
+        value: supabase
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: ghocoy-expo-redis
+          property: connectionString
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: BACKEND_CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: BACKEND_TRUST_PROXY_HOPS
+        value: "1"
+      - key: MODULAR_HOME_QUOTE_SUBMISSION_ENABLED
+        value: "true"
+      - key: MODULAR_HOME_QUOTE_PRODUCTION_HOSTS
+        sync: false
+      - key: MODULAR_HOME_QUOTE_EMAIL_HANDOFF_ENABLED
+        value: "false"
+      - key: PUBLIC_LEAD_TURNSTILE_REQUIRED
+        value: "false"
+      - key: MODULAR_HOME_QUOTE_TURNSTILE_REQUIRED
+        value: "false"
