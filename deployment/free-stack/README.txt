@@ -75,6 +75,17 @@ lead persistence, quote submit/admin access and browser/mobile behavior. Allow
 the API time to resume from sleep; do not interpret a fallback city as DB health.
 Live deployment and provider access still need verification beyond isolated CI.
 
+Preparation evidence (2026-10-12): the full 46-migration SQL bundle applied in
+one transaction on an isolated local PostgreSQL 18.3 cluster with platform test
+fixtures. It created 67 public tables, 5 sectors, 3 companies and 3 booths.
+RLS/private quote grants, public scene reads and Auth user trigger assertions
+passed; the existing-database guard rejected that initialized test DB as intended.
+This does not substitute for hosted Supabase Auth/Storage integration testing.
+The actual street EXR converted and decoded successfully as a 1024x512 HDR,
+2,117,682 bytes. GLB/native Sharp compression and full frontend build still need
+a complete dependency installation. The GitHub run 38264989101 failed before
+either job started any steps; its precise scheduling/account error is unverified.
+
 Known local-machine blocker: recovered Vite/Supabase/native Sharp installations
 are incomplete and this sandbox cannot access npm's network. No original
 node_modules were removed. GitHub/Cloudflare/Render installs from the lockfiles

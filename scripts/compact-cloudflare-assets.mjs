@@ -41,7 +41,7 @@ export function encodeRadianceHdr(data, width, height, channels = 4) {
   return Buffer.concat(chunks);
 }
 
-async function compactEnvironment(source, target) {
+export async function compactEnvironment(source, target) {
   const bytes = await fs.readFile(source);
   const input = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
   const image = new EXRLoader().setDataType(FloatType).parse(input);
