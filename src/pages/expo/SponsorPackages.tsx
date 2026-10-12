@@ -1,8 +1,9 @@
-import { useState, type CSSProperties, type FormEvent } from 'react';
+import { useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import {
   INITIAL_SPONSOR_PACKAGE_REQUEST_FORM,
   getSponsorPackageInterestLabel,
+  getSponsorPackageRequestFailure,
   getPendingSponsorPackageRequestQueue,
   readSponsorPackageRequestQueue,
   saveSponsorPackageRequest,
@@ -192,6 +193,7 @@ export default function SponsorPackages() {
   const [queuedRequestCount, setQueuedRequestCount] = useState(() => readSponsorPackageRequestQueue().length);
   const [pendingRequestCount, setPendingRequestCount] = useState(() => getPendingSponsorPackageRequestQueue().length);
   const [isSyncingBackups, setIsSyncingBackups] = useState(false);
+  const requestInFlight = useRef(false);
   const selectedPackage = getSelectedPackageCard(requestForm.packageInterest);
   const previewAccent = selectedPackage?.accent ?? '#a78bfa';
   const previewPackageLabel = selectedPackage?.title ?? getSponsorPackageInterestLabel(requestForm.packageInterest);
@@ -216,6 +218,7 @@ export default function SponsorPackages() {
   }
 
   function selectPackage(packageInterest: PackageCard['id']) {
+    if (requestInFlight.current) return;
     const selectedPackage = SPONSOR_PACKAGES.find((entry) => entry.id === packageInterest);
     setRequestForm((current) => ({ ...current, packageInterest }));
     setRequestStatus({
@@ -234,6 +237,7 @@ export default function SponsorPackages() {
 
   async function handleRequestSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (requestInFlight.current) return;
 
     const validationError = validateSponsorPackageRequestForm(requestForm);
     if (validationError) {
@@ -241,55 +245,67 @@ export default function SponsorPackages() {
       return;
     }
 
+    const submittedForm = { ...requestForm };
+    requestInFlight.current = true;
     setRequestStatus({ text: 'Sending sponsor request...', tone: 'submitting' });
 
     try {
-      await submitSponsorPackageRequestToBackend(requestForm);
+      await submitSponsorPackageRequestToBackend(submittedForm);
       let backupText = 'Request was sent to the sponsor team.';
 
       try {
-        const result = saveSponsorPackageRequest(requestForm, {
+        const result = saveSponsorPackageRequest(submittedForm, {
           persistence: 'backend',
           syncStatus: 'backend-synced',
         });
         setQueuedRequestCount(result.queueCount);
         setPendingRequestCount(getPendingSponsorPackageRequestQueue().length);
         backupText = `A copy was kept on this device as request #${result.queueCount}.`;
-      } catch (localError) {
-        backupText = `Request received, but this device could not keep a copy: ${localError instanceof Error ? localError.message : String(localError)}`;
+      } catch {
+        backupText = 'Request received, but this device could not keep a copy.';
       }
 
       setRequestForm({
         ...INITIAL_SPONSOR_PACKAGE_REQUEST_FORM,
-        packageInterest: requestForm.packageInterest,
+        packageInterest: submittedForm.packageInterest,
       });
       setRequestStatus({
         text: `Sponsor request received. ${backupText} Next step: Warpala reviews the package, booth location, assets, and quote path.`,
         tone: 'success',
       });
-    } catch {
+    } catch (error) {
+      const failure = getSponsorPackageRequestFailure(error);
+      if (!failure.retryable) {
+        setRequestStatus({ text: failure.message, tone: 'error' });
+        return;
+      }
       try {
-        const result = saveSponsorPackageRequest(requestForm);
+        const result = saveSponsorPackageRequest(submittedForm);
         setQueuedRequestCount(result.queueCount);
         setPendingRequestCount(getPendingSponsorPackageRequestQueue().length);
         setRequestStatus({
-          text: `Connection dropped. This request was saved on this device as draft #${result.queueCount}. Send it when the connection is back.`,
+          text: `${failure.message} This request has not been sent. A draft was saved on this device; use Send saved requests to try again.`,
           tone: 'error',
         });
       } catch (localError) {
         setRequestStatus({
-          text: `The request could not be saved on this device: ${localError instanceof Error ? localError.message : String(localError)}`,
+          text: localError instanceof Error && localError.message === 'SPONSOR_PACKAGE_DRAFT_STORAGE_FULL'
+            ? 'This device already has 50 unsent requests. Send the saved requests first. Your details remain in the form.'
+            : 'The request has not been sent, and this device could not save a draft. Your details remain in the form; please try again later.',
           tone: 'error',
         });
       }
+    } finally {
+      requestInFlight.current = false;
     }
   }
 
   async function handleSyncPendingBackups() {
-    if (pendingRequestCount === 0 || isSyncingBackups) {
+    if (pendingRequestCount === 0 || requestInFlight.current) {
       return;
     }
 
+    requestInFlight.current = true;
     setIsSyncingBackups(true);
     setRequestStatus({ text: 'Sending saved sponsor requests...', tone: 'submitting' });
 
@@ -300,7 +316,7 @@ export default function SponsorPackages() {
 
       if (result.failedCount > 0) {
         setRequestStatus({
-          text: `Sent ${result.syncedCount} saved ${requestPlural(result.syncedCount)}, but ${result.failedCount} still need connection. Try again later.`,
+          text: `Sent ${result.syncedCount} saved ${requestPlural(result.syncedCount)}. ${result.failedCount} could not be sent. ${getSponsorPackageRequestFailure(new Error(result.failures[0].error)).message} The saved drafts remain on this device.`,
           tone: 'error',
         });
         return;
@@ -312,12 +328,13 @@ export default function SponsorPackages() {
           : 'No saved requests are waiting to sync.',
         tone: 'success',
       });
-    } catch (syncError) {
+    } catch {
       setRequestStatus({
-          text: `Saved request send failed: ${syncError instanceof Error ? syncError.message : String(syncError)}`,
+          text: 'Saved requests could not be updated on this device. Please check the sponsor team before sending them again.',
           tone: 'error',
         });
     } finally {
+      requestInFlight.current = false;
       setIsSyncingBackups(false);
     }
   }
@@ -337,7 +354,7 @@ export default function SponsorPackages() {
           <div style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: '18px', justifyContent: 'space-between' }}>
             <div style={{ alignItems: 'center', display: 'flex', gap: '16px', minWidth: 0 }}>
               <WarpalaLogo size={48} />
-              <div>
+              <div style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
                 <div style={{ color: '#38bdf8', fontSize: '0.75rem', fontWeight: 900, letterSpacing: 0, textTransform: 'uppercase' }}>
                   Web3D Expo Sponsorship
                 </div>
@@ -361,7 +378,7 @@ export default function SponsorPackages() {
         </header>
 
         <section style={sectionStyle}>
-          <div style={{ display: 'grid', gap: '22px', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+          <div style={{ display: 'grid', gap: '22px', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))' }}>
             <div>
               <p style={{ color: '#dbeafe', fontSize: '1.14rem', fontWeight: 850, lineHeight: 1.48, margin: '0 0 14px', maxWidth: 800 }}>
                 Choose a booth package, provide your brand assets, preview the sponsor surface, and request a quote.
@@ -384,7 +401,7 @@ export default function SponsorPackages() {
           </div>
         </section>
 
-        <section style={{ ...sectionStyle, display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+        <section style={{ ...sectionStyle, display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))' }}>
           {FUNNEL_STEPS.map(([step, title, copy]) => (
             <div
               key={step}
@@ -404,7 +421,7 @@ export default function SponsorPackages() {
           ))}
         </section>
 
-        <section style={{ ...sectionStyle, display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+        <section style={{ ...sectionStyle, display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))' }}>
           {SPONSOR_PACKAGES.map((entry) => (
             <article
               key={entry.id}
@@ -453,7 +470,7 @@ export default function SponsorPackages() {
               </p>
               <p style={{ color: '#94a3b8', lineHeight: 1.45, margin: '0 0 10px' }}>{entry.audience}</p>
               <p style={{ color: entry.accent, fontSize: '0.82rem', fontWeight: 850, lineHeight: 1.4, margin: '0 0 16px' }}>{entry.proof}</p>
-              <div style={{ display: 'grid', gap: 9, gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
+              <div style={{ display: 'grid', gap: 9, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))' }}>
                 <button
                   onClick={() => selectPackage(entry.id)}
                   style={{
@@ -516,7 +533,7 @@ export default function SponsorPackages() {
             </Link>
           </div>
           <div style={{ display: 'grid', gap: 10 }}>
-            <div style={{ color: '#94a3b8', display: 'grid', fontSize: '0.72rem', fontWeight: 950, gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', letterSpacing: 0, textTransform: 'uppercase' }}>
+            <div style={{ color: '#94a3b8', display: 'grid', fontSize: '0.72rem', fontWeight: 950, gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', letterSpacing: 0, textTransform: 'uppercase' }}>
               <span>Question</span>
               <span>Standard</span>
               <span>Premium</span>
@@ -531,7 +548,7 @@ export default function SponsorPackages() {
                   borderRadius: 8,
                   display: 'grid',
                   gap: 10,
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))',
                   padding: 14,
                 }}
               >
@@ -549,7 +566,7 @@ export default function SponsorPackages() {
           id="request-quote"
           style={{ ...sectionStyle, background: 'rgba(2, 6, 23, 0.38)', border: '1px solid rgba(52, 211, 153, 0.2)', borderRadius: 8, padding: 26 }}
         >
-          <div style={{ display: 'grid', gap: 24, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+          <div style={{ display: 'grid', gap: 24, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))' }}>
             <div>
               <div style={{ color: '#34d399', fontSize: '0.74rem', fontWeight: 950, letterSpacing: 0, textTransform: 'uppercase' }}>
                 Sponsor request
@@ -570,7 +587,7 @@ export default function SponsorPackages() {
                   </div>
                   {pendingRequestCount > 0 && (
                     <button
-                      disabled={isSyncingBackups}
+                      disabled={isSyncingBackups || requestStatus.tone === 'submitting'}
                       onClick={handleSyncPendingBackups}
                       style={{
                         background: 'rgba(250, 204, 21, 0.14)',
@@ -653,10 +670,11 @@ export default function SponsorPackages() {
             </div>
 
             <form onSubmit={handleRequestSubmit} style={{ display: 'grid', gap: 13 }}>
-              <div style={{ display: 'grid', gap: 13, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+              <div style={{ display: 'grid', gap: 13, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))' }}>
                 <label style={labelStyle}>
                   Contact name
                   <input
+                    disabled={requestStatus.tone === 'submitting'}
                     autoComplete="name"
                     onChange={(event) => updateRequestField('name', event.target.value)}
                     placeholder="Name Surname"
@@ -668,6 +686,7 @@ export default function SponsorPackages() {
                 <label style={labelStyle}>
                   Work email
                   <input
+                    disabled={requestStatus.tone === 'submitting'}
                     autoComplete="email"
                     onChange={(event) => updateRequestField('email', event.target.value)}
                     placeholder="name@company.com"
@@ -677,10 +696,11 @@ export default function SponsorPackages() {
                   />
                 </label>
               </div>
-              <div style={{ display: 'grid', gap: 13, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+              <div style={{ display: 'grid', gap: 13, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))' }}>
                 <label style={labelStyle}>
                   Company
                   <input
+                    disabled={requestStatus.tone === 'submitting'}
                     autoComplete="organization"
                     onChange={(event) => updateRequestField('company', event.target.value)}
                     placeholder="Company name"
@@ -692,6 +712,7 @@ export default function SponsorPackages() {
                 <label style={labelStyle}>
                   Phone / WhatsApp
                   <input
+                    disabled={requestStatus.tone === 'submitting'}
                     autoComplete="tel"
                     onChange={(event) => updateRequestField('phone', event.target.value)}
                     placeholder="+1 555 0100"
@@ -703,6 +724,7 @@ export default function SponsorPackages() {
                 <label style={labelStyle}>
                   Website
                   <input
+                    disabled={requestStatus.tone === 'submitting'}
                     autoComplete="url"
                     onChange={(event) => updateRequestField('website', event.target.value)}
                     placeholder="https://company.com"
@@ -712,10 +734,11 @@ export default function SponsorPackages() {
                   />
                 </label>
               </div>
-              <div style={{ display: 'grid', gap: 13, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+              <div style={{ display: 'grid', gap: 13, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))' }}>
                 <label style={labelStyle}>
                   Package
                   <select
+                    disabled={requestStatus.tone === 'submitting'}
                     onChange={(event) => updateRequestField('packageInterest', event.target.value as SponsorPackageInterest)}
                     style={inputStyle}
                     value={requestForm.packageInterest}
@@ -728,6 +751,7 @@ export default function SponsorPackages() {
                 <label style={labelStyle}>
                   Budget range
                   <select
+                    disabled={requestStatus.tone === 'submitting'}
                     onChange={(event) => updateRequestField('budgetRange', event.target.value)}
                     style={inputStyle}
                     value={requestForm.budgetRange}
@@ -741,6 +765,7 @@ export default function SponsorPackages() {
                 <label style={labelStyle}>
                   Timeline
                   <select
+                    disabled={requestStatus.tone === 'submitting'}
                     onChange={(event) => updateRequestField('timeline', event.target.value)}
                     style={inputStyle}
                     value={requestForm.timeline}
@@ -752,10 +777,11 @@ export default function SponsorPackages() {
                   </select>
                 </label>
               </div>
-              <div style={{ display: 'grid', gap: 13, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+              <div style={{ display: 'grid', gap: 13, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))' }}>
                 <label style={labelStyle}>
                   Booth headline
                   <input
+                    disabled={requestStatus.tone === 'submitting'}
                     onChange={(event) => updateRequestField('sponsorHeadline', event.target.value)}
                     placeholder="What should visitors remember?"
                     style={inputStyle}
@@ -766,6 +792,7 @@ export default function SponsorPackages() {
                 <label style={labelStyle}>
                   CTA label
                   <input
+                    disabled={requestStatus.tone === 'submitting'}
                     onChange={(event) => updateRequestField('ctaLabel', event.target.value)}
                     placeholder="Request demo"
                     style={inputStyle}
@@ -774,10 +801,11 @@ export default function SponsorPackages() {
                   />
                 </label>
               </div>
-              <div style={{ display: 'grid', gap: 13, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+              <div style={{ display: 'grid', gap: 13, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))' }}>
                 <label style={labelStyle}>
                   Logo link (optional)
                   <input
+                    disabled={requestStatus.tone === 'submitting'}
                     autoComplete="url"
                     onChange={(event) => updateRequestField('logoUrl', event.target.value)}
                     placeholder="https://cdn.company.com/logo.webp"
@@ -789,6 +817,7 @@ export default function SponsorPackages() {
                 <label style={labelStyle}>
                   Screen media link (optional)
                   <input
+                    disabled={requestStatus.tone === 'submitting'}
                     autoComplete="url"
                     onChange={(event) => updateRequestField('mediaUrl', event.target.value)}
                     placeholder="https://cdn.company.com/screen.webp"
@@ -801,6 +830,7 @@ export default function SponsorPackages() {
               <label style={labelStyle}>
                 Sponsor goal
                 <textarea
+                    disabled={requestStatus.tone === 'submitting'}
                   onChange={(event) => updateRequestField('message', event.target.value)}
                   placeholder="What do you want to promote, launch, measure, or sponsor?"
                   rows={4}
@@ -829,6 +859,8 @@ export default function SponsorPackages() {
               </button>
               <div
                 data-sponsor-package-request-status={requestStatus.tone}
+                role="status"
+                aria-live="polite"
                 style={{
                   color: getStatusColor(requestStatus.tone),
                   fontSize: '0.82rem',
@@ -862,7 +894,7 @@ export default function SponsorPackages() {
                   color: '#f8fafc',
                   display: 'grid',
                   gap: 10,
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
                   padding: '14px 16px',
                   textDecoration: 'none',
                 }}

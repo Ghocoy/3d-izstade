@@ -41,9 +41,9 @@ export type SponsorPackageLeadPayload = {
 
 export const SPONSOR_PACKAGE_REQUEST_STORAGE_KEY = 'warpala.expo.sponsorPackageRequests';
 
-// Current seeded Sponsor Concierge company id in the Expo scene; the live lead API expects a UUID companyId.
-const SPONSOR_PACKAGE_LEAD_COMPANY_ID = '1a14ad1c-1536-4c27-9c0c-00c4f3224819';
+// The API resolves this stable slug against the current database.
 const SPONSOR_PACKAGE_LEAD_COMPANY_SLUG = 'sponsor-concierge';
+const MAX_SAVED_REQUESTS = 50;
 
 export const INITIAL_SPONSOR_PACKAGE_REQUEST_FORM: SponsorPackageRequestForm = {
   budgetRange: '',
@@ -157,7 +157,7 @@ export function readSponsorPackageRequestQueue(): SponsorPackageRequestRecord[] 
   try {
     const rawValue = window.localStorage.getItem(SPONSOR_PACKAGE_REQUEST_STORAGE_KEY);
     const parsed = rawValue ? JSON.parse(rawValue) : [];
-    return Array.isArray(parsed) ? parsed.slice(-49) as SponsorPackageRequestRecord[] : [];
+    return Array.isArray(parsed) ? parsed.slice(-MAX_SAVED_REQUESTS) as SponsorPackageRequestRecord[] : [];
   } catch {
     return [];
   }
@@ -165,7 +165,7 @@ export function readSponsorPackageRequestQueue(): SponsorPackageRequestRecord[] 
 
 function writeSponsorPackageRequestQueue(queue: SponsorPackageRequestRecord[]) {
   if (typeof window !== 'undefined') {
-    window.localStorage.setItem(SPONSOR_PACKAGE_REQUEST_STORAGE_KEY, JSON.stringify(queue.slice(-50)));
+    window.localStorage.setItem(SPONSOR_PACKAGE_REQUEST_STORAGE_KEY, JSON.stringify(queue.slice(-MAX_SAVED_REQUESTS)));
   }
 }
 
@@ -196,7 +196,7 @@ export function buildSponsorPackageLeadPayload(
   return {
     clientEmail: normalized.email,
     clientName: normalized.name,
-    companyId: SPONSOR_PACKAGE_LEAD_COMPANY_ID,
+    companyId: SPONSOR_PACKAGE_LEAD_COMPANY_SLUG,
     companySlug: SPONSOR_PACKAGE_LEAD_COMPANY_SLUG,
     message: details.join('\n'),
     sourcePath,
@@ -205,6 +205,24 @@ export function buildSponsorPackageLeadPayload(
 
 export async function submitSponsorPackageRequestToBackend(form: SponsorPackageRequestForm) {
   return await ExpoDataAPI.createExpoLead(buildSponsorPackageLeadPayload(form));
+}
+
+export function getSponsorPackageRequestFailure(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  const status = Number(message.match(/^SERVER_API_HTTP_(\d{3})(?:\b|:)/)?.[1]);
+
+  if (status === 409 && message.includes('EXPO_LEAD_DUPLICATE')) {
+    return { retryable: false, message: 'A request from this email is already in the sponsor team queue. Please wait for a reply before sending another.' };
+  }
+  if (status >= 400 && status < 500 && status !== 408 && status !== 429) {
+    return { retryable: false, message: 'The sponsor team could not accept this request. Check your details before sending again.' };
+  }
+  return {
+    retryable: true,
+    message: status === 429
+      ? 'Too many requests were sent. Please wait before trying again.'
+      : 'The sponsor team could not be reached. Please try again later.',
+  };
 }
 
 export async function syncPendingSponsorPackageRequests() {
@@ -225,7 +243,8 @@ export async function syncPendingSponsorPackageRequests() {
     }
   }
 
-  const nextQueue = queue.map((record) =>
+  // A new draft may have been saved while the network requests were in flight.
+  const nextQueue = readSponsorPackageRequestQueue().map((record) =>
     syncedIds.has(record.id)
       ? {
           ...record,
@@ -258,12 +277,20 @@ export function saveSponsorPackageRequest(
   const record: SponsorPackageRequestRecord = {
     ...normalized,
     capturedAt,
-    id: `sponsor-package-${capturedAt}`,
+    id: `sponsor-package-${globalThis.crypto.randomUUID()}`,
     persistence: options.persistence ?? 'local-preview',
     sourcePath: getSponsorPackageRequestSourcePath(),
     syncStatus: options.syncStatus ?? 'backend-pending',
   };
-  const nextQueue = [...readSponsorPackageRequestQueue(), record].slice(-50);
+  const queue = readSponsorPackageRequestQueue();
+  if (queue.length >= MAX_SAVED_REQUESTS) {
+    const completedIndex = queue.findIndex((entry) => entry.syncStatus === 'backend-synced');
+    if (completedIndex < 0) {
+      throw new Error('SPONSOR_PACKAGE_DRAFT_STORAGE_FULL');
+    }
+    queue.splice(completedIndex, 1);
+  }
+  const nextQueue = [...queue, record];
 
   writeSponsorPackageRequestQueue(nextQueue);
 

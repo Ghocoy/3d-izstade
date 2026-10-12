@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react';
+import { buildReleaseLoginHref } from '../../../config/releaseRouteOwnership';
 import '../../../components/calculator/styles/CalculatorPro.css';
 import {
   updateSponsorLeadInboxOps,
@@ -338,13 +339,13 @@ async function copyTextToClipboard(text: string) {
   }
 }
 
-function getAccessNotice(accessState: InboxAccessState, technicalError: string | null) {
+function getAccessNotice(accessState: InboxAccessState) {
   if (accessState === 'signed-out') {
     return {
       accent: '#fbbf24',
-      actionHref: '/login',
+      actionHref: buildReleaseLoginHref('/expo/sponsor-leads'),
       actionLabel: 'Sign in',
-      body: 'Sponsor lead inbox is protected. Sign in with a sponsor or admin account, then return to this page.',
+      body: 'Sponsor lead inbox is protected. Sign in with a sponsor or admin account to continue.',
       detail: 'If you are already signed in, refresh the page so the current Supabase session can be attached to the API request.',
       title: 'Sign in required',
     };
@@ -366,8 +367,8 @@ function getAccessNotice(accessState: InboxAccessState, technicalError: string |
       accent: '#38bdf8',
       actionHref: '/expo-3d?salesDemo=1',
       actionLabel: 'Open sales demo',
-      body: 'The Sponsor Lead Inbox UI is ready, but the backend API is not reachable right now.',
-      detail: 'After staging services are restored, run: npm.cmd run check:expo-sponsor-ops -- --public --skip-frontend',
+      body: 'The sponsor inbox is temporarily unavailable.',
+      detail: 'Please try refreshing this page in a few minutes.',
       title: 'Backend unavailable',
     };
   }
@@ -378,7 +379,7 @@ function getAccessNotice(accessState: InboxAccessState, technicalError: string |
       actionHref: '/expo-3d?salesDemo=1',
       actionLabel: 'Open sales demo',
       body: 'The Sponsor Lead Inbox could not load.',
-      detail: technicalError ? `Technical detail: ${technicalError}` : 'Retry after checking the backend and auth session.',
+      detail: 'Please refresh this page or sign in again to try loading the inbox.',
       title: 'Inbox unavailable',
     };
   }
@@ -394,7 +395,6 @@ export default function SponsorLeadInbox() {
     activeReplySentAction,
     activeStatusAction,
     data,
-    error,
     leadFilter,
     loading,
     message,
@@ -699,7 +699,7 @@ export default function SponsorLeadInbox() {
     'Confirm package interest, budget signal and timeline before exporting CSV.',
     'Move contacted leads to closed or rejected when the commercial outcome is clear.',
   ];
-  const accessNotice = getAccessNotice(accessState, error);
+  const accessNotice = getAccessNotice(accessState);
   const shouldShowInboxContent = loading || accessState === 'ready' || Boolean(data);
 
   function handleCsvExport() {

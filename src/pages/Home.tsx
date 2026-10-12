@@ -72,7 +72,7 @@ export default function Home() {
             alignItems: 'center',
             display: 'grid',
             gap: '34px',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
             marginBottom: '34px',
           }}
         >
@@ -152,7 +152,7 @@ export default function Home() {
           style={{
             display: 'grid',
             gap: '18px',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))',
             marginBottom: '32px',
           }}
         >
@@ -192,7 +192,7 @@ export default function Home() {
             color: '#f8fafc',
             display: 'grid',
             gap: '22px',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
             padding: '28px',
           }}
         >

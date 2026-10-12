@@ -106,6 +106,9 @@ export function SalesDemoGuideOverlay({ isTouchDevice = false, mode = 'walk', on
       aria-label="Sales Demo Guide"
       data-sales-demo-active-step={activeStep}
       data-sales-demo-guide-overlay="true"
+      onClick={(event) => event.stopPropagation()}
+      onPointerDown={(event) => event.stopPropagation()}
+      onPointerUp={(event) => event.stopPropagation()}
       style={{
         position: 'absolute',
         left: isTouchDevice ? '12px' : '252px',

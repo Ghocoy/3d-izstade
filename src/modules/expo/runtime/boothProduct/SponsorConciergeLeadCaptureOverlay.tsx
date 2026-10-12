@@ -22,6 +22,7 @@ export function SponsorConciergeLeadCaptureOverlay({
   isTouchDevice = false,
 }: SponsorConciergeLeadCaptureOverlayProps) {
   const previewEnabled = isBoothProductPreviewEnabled();
+  const [isExpanded, setIsExpanded] = useState(false);
   const [form, setForm] = useState<SponsorConciergeLeadFormState>(INITIAL_SPONSOR_CONCIERGE_LEAD_FORM);
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>({
     message: 'Submits to the expo lead API when available; falls back to local preview storage.',
@@ -111,6 +112,9 @@ export function SponsorConciergeLeadCaptureOverlay({
       data-booth-product-lead-capture-overlay="true"
       data-booth-product-lead-submit-mode="backend-with-local-fallback"
       onSubmit={submitLead}
+      onClick={(event) => event.stopPropagation()}
+      onPointerDown={(event) => event.stopPropagation()}
+      onPointerUp={(event) => event.stopPropagation()}
       style={{
         background:
           'radial-gradient(circle at 100% 0%, rgba(34, 197, 94, 0.16), transparent 32%), linear-gradient(180deg, rgba(6, 12, 24, 0.92), rgba(15, 23, 42, 0.8))',
@@ -146,7 +150,17 @@ export function SponsorConciergeLeadCaptureOverlay({
             Capture meeting interest for the premium sponsor package.
           </div>
         </div>
-        <span
+        {isTouchDevice ? (
+          <button
+            type="button"
+            aria-expanded={isExpanded}
+            aria-controls="sponsor-concierge-fields"
+            onClick={() => setIsExpanded((value) => !value)}
+            style={{ background: 'rgba(34, 197, 94, 0.14)', border: '1px solid rgba(134, 239, 172, 0.3)', borderRadius: 8, color: '#bbf7d0', cursor: 'pointer', flexShrink: 0, font: 'inherit', fontSize: '0.65rem', minHeight: 44, padding: '8px 10px' }}
+          >
+            {isExpanded ? 'Close sponsor form' : 'Open sponsor form'}
+          </button>
+        ) : <span
           style={{
             border: '1px solid rgba(125, 211, 252, 0.32)',
             borderRadius: '999px',
@@ -160,10 +174,10 @@ export function SponsorConciergeLeadCaptureOverlay({
           }}
         >
           Lead MVP
-        </span>
+        </span>}
       </div>
 
-      <div style={{ display: 'grid', gap: '7px' }}>
+      <div id="sponsor-concierge-fields" style={{ display: isTouchDevice && !isExpanded ? 'none' : 'grid', gap: '7px' }}>
         <input
           aria-label="Contact name"
           data-booth-product-lead-field="name"
@@ -201,7 +215,7 @@ export function SponsorConciergeLeadCaptureOverlay({
         />
       </div>
 
-      <button
+      {(!isTouchDevice || isExpanded) && <button
         data-booth-product-lead-submit="true"
         disabled={isSubmitting}
         style={{
@@ -221,9 +235,9 @@ export function SponsorConciergeLeadCaptureOverlay({
         type="submit"
       >
         {isSubmitting ? 'Sending Lead...' : 'Send Sponsor Lead'}
-      </button>
+      </button>}
 
-      <div
+      {(!isTouchDevice || isExpanded) && <div
         data-booth-product-lead-status={submitStatus.tone}
         style={{
           borderTop: '1px solid rgba(148, 163, 184, 0.14)',
@@ -235,7 +249,7 @@ export function SponsorConciergeLeadCaptureOverlay({
         }}
       >
         {submitStatus.message}
-      </div>
+      </div>}
     </form>
   );
 }
