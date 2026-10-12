@@ -1,0 +1,348 @@
+{
+  "observedAt": "2026-10-12T15:30:33.8925284Z",
+  "domain": "30sek24.com",
+  "source": "Windows Resolve-DnsName public DNS queries",
+  "dnsQueries": [
+    {
+      "name": "30sek24.com",
+      "requestedType": "A",
+      "answers": [
+        {
+          "Name": "30sek24.com",
+          "Type": 1,
+          "TTL": 3600,
+          "Section": 1,
+          "IPAddress": "216.198.79.1",
+          "NameHost": null,
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": null,
+          "NameAdministrator": null
+        }
+      ]
+    },
+    {
+      "name": "30sek24.com",
+      "requestedType": "AAAA",
+      "answers": [
+        {
+          "Name": "30sek24.com",
+          "Type": 6,
+          "TTL": 477,
+          "Section": 2,
+          "IPAddress": null,
+          "NameHost": null,
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": "dns1.p01.nsone.net",
+          "NameAdministrator": "domains+netlify.netlify.com"
+        }
+      ]
+    },
+    {
+      "name": "30sek24.com",
+      "requestedType": "NS",
+      "answers": [
+        {
+          "Name": "30sek24.com",
+          "Type": 2,
+          "TTL": 3477,
+          "Section": 1,
+          "IPAddress": null,
+          "NameHost": "dns3.p02.nsone.net",
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": null,
+          "NameAdministrator": null
+        },
+        {
+          "Name": "30sek24.com",
+          "Type": 2,
+          "TTL": 3477,
+          "Section": 1,
+          "IPAddress": null,
+          "NameHost": "dns2.p02.nsone.net",
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": null,
+          "NameAdministrator": null
+        },
+        {
+          "Name": "30sek24.com",
+          "Type": 2,
+          "TTL": 3477,
+          "Section": 1,
+          "IPAddress": null,
+          "NameHost": "dns1.p02.nsone.net",
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": null,
+          "NameAdministrator": null
+        },
+        {
+          "Name": "30sek24.com",
+          "Type": 2,
+          "TTL": 3477,
+          "Section": 1,
+          "IPAddress": null,
+          "NameHost": "dns4.p02.nsone.net",
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": null,
+          "NameAdministrator": null
+        }
+      ]
+    },
+    {
+      "name": "30sek24.com",
+      "requestedType": "SOA",
+      "answers": [
+        {
+          "Name": "30sek24.com",
+          "Type": 6,
+          "TTL": 3477,
+          "Section": 1,
+          "IPAddress": null,
+          "NameHost": null,
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": "dns1.p01.nsone.net",
+          "NameAdministrator": "domains+netlify.netlify.com"
+        }
+      ]
+    },
+    {
+      "name": "30sek24.com",
+      "requestedType": "MX",
+      "answers": [
+        {
+          "Name": "30sek24.com",
+          "Type": 6,
+          "TTL": 477,
+          "Section": 2,
+          "IPAddress": null,
+          "NameHost": null,
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": "dns1.p01.nsone.net",
+          "NameAdministrator": "domains+netlify.netlify.com"
+        }
+      ]
+    },
+    {
+      "name": "30sek24.com",
+      "requestedType": "TXT",
+      "answers": [
+        {
+          "Name": "30sek24.com",
+          "Type": 6,
+          "TTL": 477,
+          "Section": 2,
+          "IPAddress": null,
+          "NameHost": null,
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": "dns1.p01.nsone.net",
+          "NameAdministrator": "domains+netlify.netlify.com"
+        }
+      ]
+    },
+    {
+      "name": "30sek24.com",
+      "requestedType": "DS",
+      "answers": [
+        {
+          "Name": "com",
+          "Type": 6,
+          "TTL": 600,
+          "Section": 2,
+          "IPAddress": null,
+          "NameHost": null,
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": "a.gtld-servers.net",
+          "NameAdministrator": "nstld.verisign-grs.com"
+        }
+      ]
+    },
+    {
+      "name": "www.30sek24.com",
+      "requestedType": "A",
+      "answers": [
+        {
+          "Name": "www.30sek24.com",
+          "Type": 5,
+          "TTL": 3408,
+          "Section": 1,
+          "IPAddress": null,
+          "NameHost": "d363026e05356794.vercel-dns-017.com",
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": null,
+          "NameAdministrator": null
+        },
+        {
+          "Name": "d363026e05356794.vercel-dns-017.com",
+          "Type": 1,
+          "TTL": 108,
+          "Section": 1,
+          "IPAddress": "216.198.79.1",
+          "NameHost": null,
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": null,
+          "NameAdministrator": null
+        },
+        {
+          "Name": "d363026e05356794.vercel-dns-017.com",
+          "Type": 1,
+          "TTL": 108,
+          "Section": 1,
+          "IPAddress": "64.29.17.1",
+          "NameHost": null,
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": null,
+          "NameAdministrator": null
+        }
+      ]
+    },
+    {
+      "name": "www.30sek24.com",
+      "requestedType": "CNAME",
+      "answers": [
+        {
+          "Name": "www.30sek24.com",
+          "Type": 5,
+          "TTL": 3408,
+          "Section": 1,
+          "IPAddress": null,
+          "NameHost": "d363026e05356794.vercel-dns-017.com",
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": null,
+          "NameAdministrator": null
+        }
+      ]
+    },
+    {
+      "name": "api.30sek24.com",
+      "requestedType": "A",
+      "answers": [
+        {
+          "Name": "api.30sek24.com",
+          "Type": 1,
+          "TTL": 3600,
+          "Section": 1,
+          "IPAddress": "138.199.214.208",
+          "NameHost": null,
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": null,
+          "NameAdministrator": null
+        }
+      ]
+    },
+    {
+      "name": "api.30sek24.com",
+      "requestedType": "CNAME",
+      "answers": [
+        {
+          "Name": "30sek24.com",
+          "Type": 6,
+          "TTL": 600,
+          "Section": 2,
+          "IPAddress": null,
+          "NameHost": null,
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": "dns1.p01.nsone.net",
+          "NameAdministrator": "domains+netlify.netlify.com"
+        }
+      ]
+    },
+    {
+      "name": "staging.30sek24.com",
+      "requestedType": "A",
+      "answers": [
+        {
+          "Name": "staging.30sek24.com",
+          "Type": 1,
+          "TTL": 3477,
+          "Section": 1,
+          "IPAddress": "76.76.21.21",
+          "NameHost": null,
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": null,
+          "NameAdministrator": null
+        }
+      ]
+    },
+    {
+      "name": "staging.30sek24.com",
+      "requestedType": "CNAME",
+      "answers": [
+        {
+          "Name": "30sek24.com",
+          "Type": 6,
+          "TTL": 443,
+          "Section": 2,
+          "IPAddress": null,
+          "NameHost": null,
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": "dns1.p01.nsone.net",
+          "NameAdministrator": "domains+netlify.netlify.com"
+        }
+      ]
+    },
+    {
+      "name": "api-staging.30sek24.com",
+      "requestedType": "A",
+      "answers": [
+        {
+          "Name": "api-staging.30sek24.com",
+          "Type": 1,
+          "TTL": 3443,
+          "Section": 1,
+          "IPAddress": "138.199.214.208",
+          "NameHost": null,
+          "NameExchange": null,
+          "Preference": null,
+          "Strings": null,
+          "PrimaryServer": null,
+          "NameAdministrator": null
+        }
+      ]
+    }
+  ],
+  "httpInspection": {
+    "www": "Web tool returns cached title Warpala OS, crawled three weeks ago, no rendered body",
+    "api": "Web tool could not fetch root, health or scene; service status unverified",
+    "native": "HTTPS sockets blocked by agent sandbox"
+  },
+  "limitations": [
+    "This is an observation snapshot, not a complete DNS zone export",
+    "Registrar and account ownership/control are not verified",
+    "No DNS, nameserver, hosting or provider setting was changed"
+  ]
+}

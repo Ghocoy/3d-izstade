@@ -1,0 +1,76 @@
+CLOUDFLARE PIEKLUVE UN IZVIETOSANA — 30sek24.com
+
+Izveletais variants: Cloudflare Pages Free + jaunais Supabase Free + API/Redis
+lietotaja datora. Supabase ir izveidots; Pages, tunelis un DNS parslegsana vel nav.
+Gatava izvietosanas GitHub atzara nosaukums: infra/free-stack-20261012.
+
+1. DOT AGENTAM PIEKLUVI CLOUDFLARE
+Pieejamo spraudnu meklejums neatrada gatavu Cloudflare spraudni. Cloudflare piedava
+savu oficialo MCP serveri ar OAuth pieteiksanos, kas aptver Cloudflare API.
+Tas pats par sevi neparvieto DNS un neizveido apmaksatu pakalpojumu.
+
+Atver https://chatgpt.com/plugins > + > Add custom MCP server.
+  Name: Cloudflare
+  Server URL: https://mcp.cloudflare.com/mcp
+  Authentication: OAuth
+Izveido personigo spraudni, pievieno to un pabeidz pieteiksanos ESOSAJAM Cloudflare
+kontam. OAuth piekluves izveide notiek Cloudflare loga; paroles/tokens cata nav
+jasuta. Izvelies kontu, kura gribi turet 30sek24.com, un piekluvi nepieciesamajiem
+DNS, Pages un Tunnel resursiem. Pec izveides spraudnis jainstale no Personal
+sadalas, ja izveides forma to nav izdarijusi. Ja si izvele konta nav pieejama,
+var turpinat ar Cloudflare paneli manuali; tas nenozime, ka projekts ir jaatjauno.
+
+Ja vajag jaunu sarunu, atver to saja pasa 3d projekta un ieraksti:
+  Turpini 30sek24.com bezmaksas infrastrukturu. Izlasi docs/CURRENT_TASK.md.
+  Izmanto pievienoto Cloudflare savienojumu. Parbaudi piekluvi, gatavo Pages un
+  datora tuneli; saglaba esoso publisko DNS lidz testa versijas parbaudem.
+
+2. PALAIST DATORA API
+Atver Docker Desktop sava Windows sesija un sagaidi Engine running (Linux
+containers). Agenta sandbox nevar rakstit Docker/WSL sistemiskos failus, un
+Linux engine vel nebija pieejams. Saja projekta terminali palaid:
+  pwsh -File .\scripts\start-local-expo.ps1
+Kad skripts prasa, ievadi JAUNA Supabase projekta servera atslegu tikai lokali.
+Ta tiek saglabata ignoreta .tmp/local-host/backend.env. Atslega netiek drukata
+vai nosutita uz GitHub. Pilns Docker build un dzivas API parbaudes vel nav veiktas.
+
+3. PAGES IESTATIJUMI, JA JAPIESLEDZ GITHUB MANUALI
+Cloudflare > Workers & Pages > Create application > Pages > Connect to Git.
+Izvelies Ghocoy/3d-izstade un atlauj Cloudflare GitHub piekluvi sim repo.
+  Production branch: infra/free-stack-20261012
+  Root directory: repo sakne (ne apps/frontend)
+  Framework: Vite
+  Build command: npm run build:cloudflare
+  Build output: dist
+  NODE_VERSION: 24
+  VITE_PUBLIC_API_BASE_URL: https://api-pc.30sek24.com (TIKAI pec tuneļa izveides)
+  VITE_PUBLIC_APP_URL: faktiska jaunā Pages projekta https://...pages.dev adrese
+  VITE_SUPABASE_URL: https://fnvifghuszodpjtzemiw.supabase.co
+  VITE_SUPABASE_ANON_KEY: jaunā projekta publiska atslega
+Publiskie lokalie iestatijumi jau ir .tmp/local-host/frontend.env; Pages un API
+adreses jareconcile ar faktiski izveidotajiem resursiem. Servera atslegu Pages
+nevajag ievadit. Nav apstiprinats pilns build/GLB kompresijas rezultats.
+
+4. DOMENS UN TUNELIS
+Domens 30sek24.com paslaik lieto NS1/Netlify DNS; www norada uz Vercel.
+Ja zona Cloudflare konta vel nav, pievieno 30sek24.com ar Free planu. Eksporte
+PILNU esoso DNS zonu un salidzini ierakstus; domain-observations.json ir tikai
+publisko vaicajumu momentuznemums. Saglaba www/apex/staging/esoso API ierakstus
+un parbaudi DNSSEC pirms nameserveru mainas pie faktiskā registratora.
+Parbaudi faktiski pieskirtos Cloudflare nameserverus — tie netiek mineti ieprieks.
+
+Kad DNS zona ir gatava, izveido atsevisku named tunnel ghocoy-expo-local ar
+api-pc.30sek24.com -> HTTP backend:3000. Saglaba tuneļa tokenu lokali vai ievadi
+to starta skripta sleptaja laukā:
+  pwsh -File .\scripts\start-local-expo.ps1 -Mode NamedTunnel -SkipBuild
+SkipBuild lieto pec veiksmiga lokala build. Vispirms parbaudi API /health un
+/api/expo/scene publiski, tad CORS/Auth/Storage/leads/quotes Pages testa versijā.
+Papildini backend allowlist ar faktisko Pages izcelsmi/hostname. Supabase Auth
+Site URL un callbacks ari jaatjauno uz testa/finalajam faktiskajam adresēm.
+Galveno www/API parslegsanu veic tikai pec sekmigam parbaudem.
+
+Oficialie avoti:
+https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/
+https://developers.openai.com/api/docs/guides/custom-mcp-server
+https://developers.cloudflare.com/pages/get-started/git-integration/
+https://developers.cloudflare.com/tunnel/get-started/

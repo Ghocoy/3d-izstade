@@ -32,6 +32,11 @@ jobs:
       - run: npm ci --include=optional --no-audit --no-fund
         working-directory: backend-server
       - run: node --test scripts/tests/free-stack.test.mjs
+      - name: Validate local Compose configuration
+        run: |
+          docker compose --env-file deployment/free-stack/local-host/backend.env.example -f docker-compose.local-host.yml config --quiet
+          docker compose --env-file deployment/free-stack/local-host/backend.env.example -f docker-compose.local-host.yml --profile named-tunnel config --quiet
+          docker compose --env-file deployment/free-stack/local-host/backend.env.example -f docker-compose.local-host.yml --profile quick-tunnel config --quiet
       - run: npm run build:cloudflare
       - run: npm run check:bundle-budget
       - run: npm run check:all

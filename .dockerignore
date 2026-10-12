@@ -38,3 +38,8 @@ backend-server/dist
 backend-server/__tests__
 backend-server/routes/__tests__
 backend-server/*.log
+
+# Local hosting credentials, tunnel tokens, build staging and database fixtures.
+.tmp*
+.codex
+.agents

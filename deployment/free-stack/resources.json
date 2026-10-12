@@ -13,6 +13,17 @@
     "status": "not-created-workspace-services-suspended-for-billing"
   },
   "cloudflare": {
-    "status": "user-has-account-management-connection-unavailable"
+    "status": "user-has-account-management-connection-unavailable",
+    "domain": "30sek24.com",
+    "pagesDeploymentBranch": "infra/free-stack-20261012",
+    "domainNameservers": "NS1/Netlify; Cloudflare migration not performed"
+  },
+  "localHost": {
+    "status": "prepared-docker-engine-and-secret-entry-pending",
+    "composeProject": "ghocoy-expo-local",
+    "composeFile": "docker-compose.local-host.yml",
+    "startScript": "scripts/start-local-expo.ps1",
+    "proposedValidationApiHostname": "api-pc.30sek24.com",
+    "publicApiCreated": false
   }
 }

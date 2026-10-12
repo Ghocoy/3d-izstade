@@ -1,0 +1,102 @@
+# Local API/Redis for Cloudflare Pages + the new Supabase project.
+# Run from the repository root; see deployment/free-stack/local-host/README.txt.
+name: ghocoy-expo-local
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "128mb", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redis-data:/data
+    networks: [data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend-server/Dockerfile.full
+    environment:
+      NODE_ENV: production
+      APP_ENV: production
+      PORT: "3000"
+      PIXEL_STREAMING_ROUTES_ENABLED: "false"
+      EXPO_COMMUNITY_STORAGE: supabase
+      REDIS_URL: redis://redis:6379
+      SUPABASE_URL: ${SUPABASE_URL:?Set the new Supabase URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:?Set the new public Supabase key}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY:?Set the new server key in the ignored local env file}
+      BACKEND_CORS_ALLOWED_ORIGINS: ${BACKEND_CORS_ALLOWED_ORIGINS:?Set the actual frontend origin}
+      BACKEND_TRUST_PROXY_HOPS: "1"
+      MODULAR_HOME_QUOTE_SUBMISSION_ENABLED: "true"
+      MODULAR_HOME_QUOTE_PRODUCTION_HOSTS: ${MODULAR_HOME_QUOTE_PRODUCTION_HOSTS:?Set the actual frontend and API hostnames}
+      MODULAR_HOME_QUOTE_EMAIL_HANDOFF_ENABLED: "false"
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks: [default, data]
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/health >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    profiles: [named-tunnel]
+    command: ["tunnel", "--no-autoupdate", "run", "--token-file", "/run/secrets/tunnel_token"]
+    secrets: [tunnel_token]
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  quick-tunnel:
+    image: cloudflare/cloudflared:latest
+    profiles: [quick-tunnel]
+    command: ["tunnel", "--no-autoupdate", "--url", "http://backend:3000"]
+    depends_on:
+      backend:
+        condition: service_healthy
+    # A restarted Quick Tunnel gets a new URL; keep this explicitly temporary.
+    restart: "no"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+secrets:
+  tunnel_token:
+    file: ./.tmp/local-host/tunnel-token
+
+volumes:
+  redis-data:
+
+networks:
+  default:
+  data:
+    internal: true

@@ -1,11 +1,22 @@
 FREE DEMO INFRASTRUCTURE
 
+LOCAL HOSTING OPTION — 2026-10-12
+The user confirmed the PC can remain powered on. A separate API/Redis Compose
+configuration is prepared in docker-compose.local-host.yml; setup and named/
+temporary Cloudflare tunnel options are in local-host/README.txt. This avoids
+the currently billing-suspended Render workspace. Supabase remains the new
+verified Free project below. The PC API/tunnel and Pages are not live yet.
+The domain choice, secure local server-key entry, running Docker engine and
+complete build/live validation remain outstanding. The Render blueprint below
+is an alternative if its account becomes usable; no new Render resource exists.
+
 Source: https://github.com/Ghocoy/3d-izstade
 Deployment branch: infra/free-stack-20261012 (based on release/v1-stabilization)
 Frontend: existing root Vite SPA, Cloudflare Pages Free
 Database/Auth/Storage: a new Supabase Free project
-API: backend-server/Dockerfile.full, Render Free, Frankfurt
-Redis: Render Free Key Value in the same workspace/region, internal access only
+API: backend-server/Dockerfile.full, this PC through Cloudflare Tunnel
+Redis: Docker on this PC, internal network with a persistent local volume
+Render Free blueprint is an unused alternative; its workspace is billing-suspended.
 
 CURRENT CLOUD STATUS — 2026-10-12
 Supabase ghocoy-expo-free was CREATED in the named organization after the provider

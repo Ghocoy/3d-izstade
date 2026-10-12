@@ -5,6 +5,9 @@ import { fileURLToPath } from 'node:url';
 import createIgnore from 'ignore';
 
 const SECRET_ENV_CANDIDATES = [
+  '.tmp/local-host/backend.env',
+  '.tmp/local-host/tunnel-token',
+  '.tmp/free-stack-supabase-public.env',
   '.env',
   '.env.local',
   '.env.docker',
