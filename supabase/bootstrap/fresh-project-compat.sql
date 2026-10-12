@@ -55,6 +55,9 @@ BEGIN
 END $$;
 
 -- Only published sponsors/booths belong in direct public reads.
+ALTER FUNCTION public.set_updated_at() SET search_path = public, pg_temp;
+ALTER FUNCTION public.set_modular_home_quote_requests_updated_at() SET search_path = public, pg_temp;
+
 DROP POLICY IF EXISTS "Public read companies" ON public.companies;
 DROP POLICY IF EXISTS "company_access" ON public.companies;
 DROP POLICY IF EXISTS "Active companies are viewable by everyone" ON public.companies;

@@ -1,0 +1,7 @@
+# Separate migration workdir for the new project's squashed baseline.
+# Do not link or db push the historical root supabase/migrations to this project.
+project_id = "ghocoy-expo-free"
+[db]
+major_version = 17
+[db.seed]
+enabled = false

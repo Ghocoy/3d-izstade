@@ -1,0 +1,18 @@
+{
+  "supabase": {
+    "name": "ghocoy-expo-free",
+    "projectRef": "fnvifghuszodpjtzemiw",
+    "region": "eu-central-1",
+    "confirmedCreationCostPerMonth": 0,
+    "apiUrl": "https://fnvifghuszodpjtzemiw.supabase.co",
+    "dashboardUrl": "https://supabase.com/dashboard/project/fnvifghuszodpjtzemiw",
+    "migrationWorkdir": "deployment/free-stack",
+    "status": "created-and-schema-verified"
+  },
+  "render": {
+    "status": "not-created-workspace-services-suspended-for-billing"
+  },
+  "cloudflare": {
+    "status": "user-has-account-management-connection-unavailable"
+  }
+}

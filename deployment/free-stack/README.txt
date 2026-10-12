@@ -7,6 +7,31 @@ Database/Auth/Storage: a new Supabase Free project
 API: backend-server/Dockerfile.full, Render Free, Frankfurt
 Redis: Render Free Key Value in the same workspace/region, internal access only
 
+CURRENT CLOUD STATUS — 2026-10-12
+Supabase ghocoy-expo-free was CREATED in the named organization after the provider
+confirmed cost 0/month. Ref: fnvifghuszodpjtzemiw, EU Central (Frankfurt).
+Dashboard: https://supabase.com/dashboard/project/fnvifghuszodpjtzemiw
+The schema is applied and verified: 67 public tables, all RLS enabled; private
+quotes have no anon/authenticated SELECT grant; service-role inserts are allowed.
+Two Storage buckets exist (expo_assets public, expo_review_media private).
+Trigger function search_path warnings were fixed and the security advisor now
+shows only informational default-deny/no-policy findings for server-only tables.
+Public browser configuration is saved locally in ignored
+.tmp/free-stack-supabase-public.env. No server secret was obtained or published.
+
+The new project's two ACTUAL remote migration versions are mirrored under
+deployment/free-stack/supabase/migrations with their original applied SQL.
+Use deployment/free-stack as the CLI workdir for this new project. Do not replay
+the historical root migration tree against the already bootstrapped project.
+
+User confirmed an existing Cloudflare account, but no management connection is
+available in this session. Render's five existing workspace services all report
+suspended / billing, including a Free service; no new Render resources were
+created. Existing services, disks, invoices and Supabase projects are unchanged.
+Render billing resolution or a separately chosen backend host is required before
+this becomes a fully working public demo. Creating this stack does not remove
+existing account charges. No payment or paid-plan change was performed.
+
 Do not select a paid service plan, enable paid previews or add live AI/Stripe keys.
 Render Free sleeps on idle and has no uptime guarantee. Its free Redis is memory
 only; permanent records belong in Supabase. This stack is a controlled demo/beta.
